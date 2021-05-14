@@ -7,11 +7,13 @@ import (
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("pantry/templates/hello.gtpl")
+	templateSet, err := template.ParseFiles(
+		"pantry/templates/index.gtpl",
+		"pantry/templates/base.gtpl")
 	if err != nil {
 		log.Fatal(err)
 	}
-	t.Execute(w, nil)
+	templateSet.Execute(w, nil)
 }
 
 func StartServer() {
