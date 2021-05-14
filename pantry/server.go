@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func helloWorld(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("pantry/templates/hello.gtpl")
 	if err != nil {
 		log.Fatal(err)
@@ -15,7 +15,7 @@ func helloWorld(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartServer() {
-	http.HandleFunc("/", helloWorld)         // set router
+	http.HandleFunc("/", index)              // set router
 	err := http.ListenAndServe(":8080", nil) // set listen port
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
