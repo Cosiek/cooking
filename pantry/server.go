@@ -17,7 +17,9 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartServer() {
-	http.HandleFunc("/", index)              // set router
+	// add routes
+	http.HandleFunc("/", index)
+	http.HandleFunc("/products", productsIndex)
 	err := http.ListenAndServe(":8080", nil) // set listen port
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
