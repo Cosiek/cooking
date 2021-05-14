@@ -1,13 +1,17 @@
 package pantry
 
 import (
-	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 )
 
 func helloWorld(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello world!") // send data to client side
+	t, err := template.ParseFiles("pantry/templates/hello.gtpl")
+	if err != nil {
+		log.Fatal(err)
+	}
+	t.Execute(w, nil)
 }
 
 func StartServer() {
