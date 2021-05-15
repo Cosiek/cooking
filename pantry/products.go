@@ -17,6 +17,34 @@ func productsIndex(w http.ResponseWriter, r *http.Request) {
 	templateSet.Execute(w, nil)
 }
 
+func editProductView(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		productId := "1"
+		path := "/products/details/" + productId
+		http.Redirect(w, r, path, http.StatusFound)
+	}
+
+	idMatch := r.URL.Path[len("/products/edit/"):]
+	id, err := strconv.Atoi(idMatch)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	if id != 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	templateSet, err := template.ParseFiles(
+		"pantry/templates/edit_product_form.gtpl",
+		"pantry/templates/base.gtpl")
+	if err != nil {
+		log.Fatal(err)
+	}
+	templateSet.Execute(w, nil)
+}
+
 func newProductView(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		productId := "1"

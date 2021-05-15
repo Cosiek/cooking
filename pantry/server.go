@@ -22,7 +22,9 @@ func StartServer() {
 	http.HandleFunc("/products", productsIndex)
 	http.HandleFunc("/products/new", newProductView)
 	http.HandleFunc("/products/details/", productDetailsView)
-	err := http.ListenAndServe(":8080", nil) // set listen port
+	http.HandleFunc("/products/edit/", editProductView)
+
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
