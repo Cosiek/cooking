@@ -14,10 +14,11 @@ import (
 // ============================================================================
 
 type ProductViewsHandler struct {
+	db *gorm.DB
 }
 
-func addProductHandlers() {
-	handler := ProductViewsHandler{}
+func addProductHandlers(db *gorm.DB) {
+	handler := ProductViewsHandler{db}
 	http.HandleFunc("/products", handler.productsIndex)
 	http.HandleFunc("/products/new", handler.newProductView)
 	http.HandleFunc("/products/details/", handler.productDetailsView)
@@ -39,13 +40,16 @@ type Product struct {
 // ============================================================================
 
 func (handler *ProductViewsHandler) productsIndex(w http.ResponseWriter, r *http.Request) {
+	var products []Product
+	handler.db.Find(&products)
+
 	templateSet, err := template.ParseFiles(
 		"pantry/templates/products_index.gtpl",
 		"pantry/templates/base.gtpl")
 	if err != nil {
 		log.Fatal(err)
 	}
-	templateSet.Execute(w, nil)
+	templateSet.Execute(w, products)
 }
 
 func (handler *ProductViewsHandler) editProductView(w http.ResponseWriter, r *http.Request) {

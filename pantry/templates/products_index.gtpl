@@ -6,6 +6,8 @@
 <h3>Produkty!</h3>
 <a href="/products/new">Dodaj nowy</a>
 <ul>
-    <li><a href="/products/details/1">Ogórki na mizerię</a></li>
+    {{range $product := .}}
+        <li><a href="/products/details/{{ $product.ID }}">{{ $product.Name }}</a></li>
+    {{end}}
 </ul>
 {{end}}
