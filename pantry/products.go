@@ -1,10 +1,12 @@
 package pantry
 
 import (
+	"errors"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -53,21 +55,15 @@ func (handler *ProductViewsHandler) productsIndex(w http.ResponseWriter, r *http
 }
 
 func (handler *ProductViewsHandler) editProductView(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		productId := "1"
-		path := "/products/details/" + productId
-		http.Redirect(w, r, path, http.StatusFound)
-	}
-
-	idMatch := r.URL.Path[len("/products/edit/"):]
-	id, err := strconv.Atoi(idMatch)
-	if err != nil {
-		http.NotFound(w, r)
+	// get product
+	product := handler.getProductOr404(&w, r)
+	if product == nil {
 		return
 	}
 
-	if id != 1 {
-		http.NotFound(w, r)
+	if r.Method == "POST" {
+		path := "/products/details/" + strconv.Itoa(int(product.ID))
+		http.Redirect(w, r, path, http.StatusFound)
 		return
 	}
 
@@ -77,7 +73,7 @@ func (handler *ProductViewsHandler) editProductView(w http.ResponseWriter, r *ht
 	if err != nil {
 		log.Fatal(err)
 	}
-	templateSet.Execute(w, nil)
+	templateSet.Execute(w, product)
 }
 
 func (handler *ProductViewsHandler) newProductView(w http.ResponseWriter, r *http.Request) {
@@ -96,23 +92,36 @@ func (handler *ProductViewsHandler) newProductView(w http.ResponseWriter, r *htt
 }
 
 func (handler *ProductViewsHandler) productDetailsView(w http.ResponseWriter, r *http.Request) {
-	idMatch := r.URL.Path[len("/products/details/"):]
-	id, err := strconv.Atoi(idMatch)
-	if err != nil {
-		http.NotFound(w, r)
+	product := handler.getProductOr404(&w, r)
+	if product == nil {
 		return
 	}
-
-	if id != 1 {
-		http.NotFound(w, r)
-		return
-	}
-
 	templateSet, err := template.ParseFiles(
 		"pantry/templates/product_details.gtpl",
 		"pantry/templates/base.gtpl")
 	if err != nil {
 		log.Fatal(err)
 	}
-	templateSet.Execute(w, nil)
+	templateSet.Execute(w, product)
+}
+
+func (handler *ProductViewsHandler) getProductOr404(w *http.ResponseWriter, r *http.Request) *Product {
+	// get id from path
+	segments := strings.Split(r.URL.Path, "/")
+	idMatch := segments[len(segments)-1]
+	id, err := strconv.Atoi(idMatch)
+	if err != nil {
+		http.NotFound(*w, r)
+		return nil
+	}
+
+	// get product from DB
+	var product Product
+	result := handler.db.First(&product, id)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		http.NotFound(*w, r)
+		return nil
+	}
+
+	return &product
 }
