@@ -11,11 +11,15 @@ import (
 // ROUTING ====================================================================
 // ============================================================================
 
+type ProductViewsHandler struct {
+}
+
 func addProductHandlers() {
-	http.HandleFunc("/products", productsIndex)
-	http.HandleFunc("/products/new", newProductView)
-	http.HandleFunc("/products/details/", productDetailsView)
-	http.HandleFunc("/products/edit/", editProductView)
+	handler := ProductViewsHandler{}
+	http.HandleFunc("/products", handler.productsIndex)
+	http.HandleFunc("/products/new", handler.newProductView)
+	http.HandleFunc("/products/details/", handler.productDetailsView)
+	http.HandleFunc("/products/edit/", handler.editProductView)
 }
 
 
@@ -23,7 +27,7 @@ func addProductHandlers() {
 // VIEWS ======================================================================
 // ============================================================================
 
-func productsIndex(w http.ResponseWriter, r *http.Request) {
+func (handler *ProductViewsHandler) productsIndex(w http.ResponseWriter, r *http.Request) {
 	templateSet, err := template.ParseFiles(
 		"pantry/templates/products_index.gtpl",
 		"pantry/templates/base.gtpl")
@@ -33,7 +37,7 @@ func productsIndex(w http.ResponseWriter, r *http.Request) {
 	templateSet.Execute(w, nil)
 }
 
-func editProductView(w http.ResponseWriter, r *http.Request) {
+func (handler *ProductViewsHandler) editProductView(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		productId := "1"
 		path := "/products/details/" + productId
@@ -61,7 +65,7 @@ func editProductView(w http.ResponseWriter, r *http.Request) {
 	templateSet.Execute(w, nil)
 }
 
-func newProductView(w http.ResponseWriter, r *http.Request) {
+func (handler *ProductViewsHandler) newProductView(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		productId := "1"
 		path := "/products/details/" + productId
@@ -76,7 +80,7 @@ func newProductView(w http.ResponseWriter, r *http.Request) {
 	templateSet.Execute(w, nil)
 }
 
-func productDetailsView(w http.ResponseWriter, r *http.Request) {
+func (handler *ProductViewsHandler) productDetailsView(w http.ResponseWriter, r *http.Request) {
 	idMatch := r.URL.Path[len("/products/details/"):]
 	id, err := strconv.Atoi(idMatch)
 	if err != nil {
