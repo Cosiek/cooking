@@ -19,10 +19,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 func StartServer() {
 	// add routes
 	http.HandleFunc("/", index)
-	http.HandleFunc("/products", productsIndex)
-	http.HandleFunc("/products/new", newProductView)
-	http.HandleFunc("/products/details/", productDetailsView)
-	http.HandleFunc("/products/edit/", editProductView)
+	addProductHandlers()
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {

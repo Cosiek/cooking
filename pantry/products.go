@@ -7,6 +7,22 @@ import (
 	"strconv"
 )
 
+// ============================================================================
+// ROUTING ====================================================================
+// ============================================================================
+
+func addProductHandlers() {
+	http.HandleFunc("/products", productsIndex)
+	http.HandleFunc("/products/new", newProductView)
+	http.HandleFunc("/products/details/", productDetailsView)
+	http.HandleFunc("/products/edit/", editProductView)
+}
+
+
+// ============================================================================
+// VIEWS ======================================================================
+// ============================================================================
+
 func productsIndex(w http.ResponseWriter, r *http.Request) {
 	templateSet, err := template.ParseFiles(
 		"pantry/templates/products_index.gtpl",
