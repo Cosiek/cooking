@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"gorm.io/gorm"
 )
 
 // ============================================================================
@@ -12,16 +14,26 @@ import (
 // ============================================================================
 
 type ProductViewsHandler struct {
+	db *gorm.DB
 }
 
-func addProductHandlers() {
-	handler := ProductViewsHandler{}
+func addProductHandlers(db *gorm.DB) {
+	handler := ProductViewsHandler{db}
 	http.HandleFunc("/products", handler.productsIndex)
 	http.HandleFunc("/products/new", handler.newProductView)
 	http.HandleFunc("/products/details/", handler.productDetailsView)
 	http.HandleFunc("/products/edit/", handler.editProductView)
 }
 
+// ============================================================================
+// MODEL ======================================================================
+// ============================================================================
+
+type Product struct {
+	gorm.Model
+	Name   string
+	Mesure int8
+}
 
 // ============================================================================
 // VIEWS ======================================================================

@@ -4,6 +4,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"gorm.io/gorm"
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -16,10 +18,10 @@ func index(w http.ResponseWriter, r *http.Request) {
 	templateSet.Execute(w, nil)
 }
 
-func StartServer() {
+func StartServer(db *gorm.DB) {
 	// add routes
 	http.HandleFunc("/", index)
-	addProductHandlers()
+	addProductHandlers(db)
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
