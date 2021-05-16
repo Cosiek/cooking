@@ -14,11 +14,10 @@ import (
 // ============================================================================
 
 type ProductViewsHandler struct {
-	db *gorm.DB
 }
 
-func addProductHandlers(db *gorm.DB) {
-	handler := ProductViewsHandler{db}
+func addProductHandlers() {
+	handler := ProductViewsHandler{}
 	http.HandleFunc("/products", handler.productsIndex)
 	http.HandleFunc("/products/new", handler.newProductView)
 	http.HandleFunc("/products/details/", handler.productDetailsView)
