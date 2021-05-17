@@ -15,10 +15,6 @@ import (
 // ROUTING ====================================================================
 // ============================================================================
 
-type ProductViewsHandler struct {
-	db *gorm.DB
-}
-
 func addProductHandlers(db *gorm.DB) {
 	handler := ProductViewsHandler{db}
 	http.HandleFunc("/products", handler.productsIndex)
@@ -47,68 +43,10 @@ var Mesures = map[int8]string{
 // VIEWS ======================================================================
 // ============================================================================
 
-func (handler *ProductViewsHandler) productsIndex(w http.ResponseWriter, r *http.Request) {
-	var products []Product
-	handler.db.Find(&products)
+// VIEWS HANDLER ======================
 
-	templateSet, err := template.ParseFiles(
-		"pantry/templates/products_index.gtpl",
-		"pantry/templates/base.gtpl")
-	if err != nil {
-		log.Fatal(err)
-	}
-	templateSet.Execute(w, products)
-}
-
-func (handler *ProductViewsHandler) editProductView(w http.ResponseWriter, r *http.Request) {
-	// get product
-	product := handler.getProductOr404(&w, r)
-	if product == nil {
-		return
-	}
-
-	if r.Method == "POST" {
-		path := "/products/details/" + strconv.Itoa(int(product.ID))
-		http.Redirect(w, r, path, http.StatusFound)
-		return
-	}
-
-	templateSet, err := template.ParseFiles(
-		"pantry/templates/edit_product_form.gtpl",
-		"pantry/templates/base.gtpl")
-	if err != nil {
-		log.Fatal(err)
-	}
-	templateSet.Execute(w, product)
-}
-
-func (handler *ProductViewsHandler) newProductView(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		productId := "1"
-		path := "/products/details/" + productId
-		http.Redirect(w, r, path, http.StatusFound)
-	}
-	templateSet, err := template.ParseFiles(
-		"pantry/templates/new_product_form.gtpl",
-		"pantry/templates/base.gtpl")
-	if err != nil {
-		log.Fatal(err)
-	}
-	templateSet.Execute(w, nil)
-}
-
-func (handler *ProductViewsHandler) productDetailsView(w http.ResponseWriter, r *http.Request) {
-	product := handler.getProductOr404(&w, r)
-	if product == nil {
-		return
-	}
-	templateSet, err := template.ParseFiles(
-		"pantry/templates/product_details.gtpl",
-		"pantry/templates/base.gtpl")
-	if err != nil {
-		log.Fatal(err)
-	}
-	templateSet.Execute(w, product)
+type ProductViewsHandler struct {
+	db *gorm.DB
 }
 
 func (handler *ProductViewsHandler) getProductOr404(w *http.ResponseWriter, r *http.Request) *Product {
@@ -130,4 +68,79 @@ func (handler *ProductViewsHandler) getProductOr404(w *http.ResponseWriter, r *h
 	}
 
 	return &product
+}
+
+func (handler *ProductViewsHandler) renderTemplate(templateName string, ctx map[string]interface{}, w *http.ResponseWriter, r *http.Request) {
+	templateSet, err := template.ParseFiles(
+		"pantry/templates/"+templateName+".gtpl",
+		"pantry/templates/base.gtpl")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	type TemplateCtx struct {
+		Mesures map[int8]string
+		Request *http.Request
+		Ctx     map[string]interface{}
+	}
+
+	templateSet.Execute(*w, TemplateCtx{
+		Mesures: Mesures,
+		Request: r,
+		Ctx:     ctx,
+	})
+}
+
+// VIEWS ==============================
+
+func (handler *ProductViewsHandler) productsIndex(w http.ResponseWriter, r *http.Request) {
+	var products []Product
+	handler.db.Find(&products)
+
+	ctx := map[string]interface{}{
+		"products": products,
+	}
+	handler.renderTemplate("products_index", ctx, &w, r)
+}
+
+func (handler *ProductViewsHandler) editProductView(w http.ResponseWriter, r *http.Request) {
+	// get product
+	product := handler.getProductOr404(&w, r)
+	if product == nil {
+		return
+	}
+
+	if r.Method == "POST" {
+		path := "/products/details/" + strconv.Itoa(int(product.ID))
+		http.Redirect(w, r, path, http.StatusFound)
+		return
+	}
+
+	ctx := map[string]interface{}{
+		"product": product,
+	}
+	handler.renderTemplate("edit_product_form", ctx, &w, r)
+}
+
+func (handler *ProductViewsHandler) newProductView(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		productId := "1"
+		path := "/products/details/" + productId
+		http.Redirect(w, r, path, http.StatusFound)
+	}
+
+	ctx := map[string]interface{}{}
+	handler.renderTemplate("new_product_form", ctx, &w, r)
+}
+
+func (handler *ProductViewsHandler) productDetailsView(w http.ResponseWriter, r *http.Request) {
+	product := handler.getProductOr404(&w, r)
+	if product == nil {
+		return
+	}
+
+	ctx := map[string]interface{}{
+		"product": product,
+	}
+	handler.renderTemplate("product_details", ctx, &w, r)
 }
