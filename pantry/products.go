@@ -81,12 +81,14 @@ func (handler *ProductViewsHandler) renderTemplate(templateName string, ctx map[
 	type TemplateCtx struct {
 		Mesures map[int8]string
 		Request *http.Request
+		Handler *ProductViewsHandler
 		Ctx     map[string]interface{}
 	}
 
 	templateSet.Execute(*w, TemplateCtx{
 		Mesures: Mesures,
 		Request: r,
+		Handler: handler,
 		Ctx:     ctx,
 	})
 }
