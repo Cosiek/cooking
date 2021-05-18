@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -15,12 +16,40 @@ import (
 // ROUTING ====================================================================
 // ============================================================================
 
-func addProductHandlers(db *gorm.DB) {
-	handler := ProductViewsHandler{db}
-	http.HandleFunc("/products", handler.productsIndex)
-	http.HandleFunc("/products/new", handler.newProductView)
-	http.HandleFunc("/products/details/", handler.productDetailsView)
-	http.HandleFunc("/products/edit/", handler.editProductView)
+func getProductViewsHandler(db *gorm.DB) *ProductViewsHandler {
+	handler := ProductViewsHandler{db: db}
+
+	handler.views = []View{
+		{"products_new", regexp.MustCompile(`/products/new`), []string{"GET", "POST"}, handler.newProductView},
+		{"products_edit", regexp.MustCompile(`/products/edit/(?P<id>\d+)`), []string{"GET", "POST"}, handler.editProductView},
+		{"products_details", regexp.MustCompile(`/products/details/(?P<id>\d+)`), []string{"GET"}, handler.productDetailsView},
+		{"products_index", regexp.MustCompile(`/products`), []string{"GET"}, handler.productsIndexView},
+	}
+
+	return &handler
+}
+
+func (handler *ProductViewsHandler) GetView(r *http.Request) *View {
+	var found *View
+	found = nil
+	for _, view := range handler.views {
+		// check for a match
+		match := view.Regex.FindStringSubmatch(r.URL.Path)
+		if match == nil {
+			continue
+		}
+		// get values of named groups
+		matchesMap := make(map[string]string)
+		for i, name := range view.Regex.SubexpNames() {
+			if i != 0 && name != "" {
+				matchesMap[name] = match[i]
+			}
+		}
+		// remember match and break
+		found = &view
+		break
+	}
+	return found
 }
 
 // ============================================================================
@@ -46,7 +75,8 @@ var Mesures = map[int8]string{
 // VIEWS HANDLER ======================
 
 type ProductViewsHandler struct {
-	db *gorm.DB
+	db    *gorm.DB
+	views []View
 }
 
 func (handler *ProductViewsHandler) getProductOr404(w *http.ResponseWriter, r *http.Request) *Product {
@@ -95,7 +125,7 @@ func (handler *ProductViewsHandler) renderTemplate(templateName string, ctx map[
 
 // VIEWS ==============================
 
-func (handler *ProductViewsHandler) productsIndex(w http.ResponseWriter, r *http.Request) {
+func (handler *ProductViewsHandler) productsIndexView(w http.ResponseWriter, r *http.Request) {
 	var products []Product
 	handler.db.Find(&products)
 
