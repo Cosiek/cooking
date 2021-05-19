@@ -1,13 +1,13 @@
 package pantry
 
 import (
+	"context"
 	"errors"
 	"html/template"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"gorm.io/gorm"
 )
@@ -29,7 +29,9 @@ func getProductViewsHandler(db *gorm.DB) *ProductViewsHandler {
 	return &handler
 }
 
-func (handler *ProductViewsHandler) GetView(r *http.Request) *View {
+type CtxKey string
+
+func (handler *ProductViewsHandler) GetView(r *http.Request) (*View, *http.Request) {
 	var found *View
 	found = nil
 	for _, view := range handler.views {
@@ -45,11 +47,13 @@ func (handler *ProductViewsHandler) GetView(r *http.Request) *View {
 				matchesMap[name] = match[i]
 			}
 		}
+		ctx := context.WithValue(r.Context(), CtxKey("urlMatches"), matchesMap)
+		r = r.WithContext(ctx)
 		// remember match and break
 		found = &view
 		break
 	}
-	return found
+	return found, r
 }
 
 // ============================================================================
@@ -81,8 +85,8 @@ type ProductViewsHandler struct {
 
 func (handler *ProductViewsHandler) getProductOr404(w *http.ResponseWriter, r *http.Request) *Product {
 	// get id from path
-	segments := strings.Split(r.URL.Path, "/")
-	idMatch := segments[len(segments)-1]
+	urlMatches := r.Context().Value(CtxKey("urlMatches"))
+	idMatch := urlMatches.(map[string]string)["id"]
 	id, err := strconv.Atoi(idMatch)
 	if err != nil {
 		http.NotFound(*w, r)

@@ -13,7 +13,7 @@ type View struct {
 }
 
 type ViewHandler interface {
-	GetView(r *http.Request) *View
+	GetView(r *http.Request) (*View, *http.Request)
 }
 
 type Router struct {
@@ -22,7 +22,7 @@ type Router struct {
 
 func (router *Router) serve(w http.ResponseWriter, r *http.Request) {
 	for _, vh := range router.viewHandlers {
-		view := vh.GetView(r)
+		view, r := vh.GetView(r)
 		if view != nil {
 			view.Func(w, r)
 			return

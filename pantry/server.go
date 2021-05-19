@@ -11,11 +11,11 @@ import (
 type IndexViewHandler struct {
 }
 
-func (handler *IndexViewHandler) GetView(r *http.Request) *View {
+func (handler *IndexViewHandler) GetView(r *http.Request) (*View, *http.Request) {
 	if r.URL.Path == "/" {
-		return &View{Name: "index", Methods: []string{"GET"}, Func: index}
+		return &View{Name: "index", Methods: []string{"GET"}, Func: index}, r
 	} else {
-		return nil
+		return nil, r
 	}
 }
 
