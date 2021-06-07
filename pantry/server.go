@@ -4,20 +4,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"regexp"
 
 	"gorm.io/gorm"
 )
-
-type IndexViewHandler struct {
-}
-
-func (handler *IndexViewHandler) GetView(r *http.Request) (*View, *http.Request) {
-	if r.URL.Path == "/" {
-		return &View{Name: "index", Methods: []string{"GET"}, Func: index}, r
-	} else {
-		return nil, r
-	}
-}
 
 func index(w http.ResponseWriter, r *http.Request) {
 	templateSet, err := template.ParseFiles(
@@ -29,14 +19,22 @@ func index(w http.ResponseWriter, r *http.Request) {
 	templateSet.Execute(w, nil)
 }
 
+func getIndexView() View {
+	return View{
+		Name:    "index",
+		Regex:   regexp.MustCompile(`^/$`),
+		Methods: []string{"GET"},
+		Func:    index,
+	}
+}
+
 func StartServer(db *gorm.DB) {
 	// prepare router
 	router := Router{}
 
-	// add routes
-	productViewsHandler := getProductViewsHandler(db)
-	router.addViewsHandler(productViewsHandler)
-	router.addViewsHandler(&IndexViewHandler{})
+	// add views
+	addProductViews(&router, db)
+	router.addView(getIndexView())
 
 	http.HandleFunc("/", router.serve)
 
