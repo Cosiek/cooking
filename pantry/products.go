@@ -40,6 +40,29 @@ type Product struct {
 	Mesure int8
 }
 
+func (p *Product) setName(name string) error {
+	if len(name) > 30 {
+		return errors.New("name to long")
+	}
+	p.Name = name
+	return nil
+}
+
+func (p *Product) setMesure(mesureIdStr string) error {
+	unknownMesureMsg := "unknown mesure - choose one from the list."
+	// try to convert to int
+	mesure64, err := strconv.ParseInt(mesureIdStr, 10, 8)
+	if err != nil {
+		return errors.New(unknownMesureMsg)
+	}
+	mesure := int8(mesure64)
+	if _, ok := Mesures[mesure]; !ok {
+		return errors.New(unknownMesureMsg)
+	}
+	p.Mesure = mesure
+	return nil
+}
+
 var Mesures = map[int8]string{
 	1: "szt.",
 	2: "kg",
