@@ -187,32 +187,56 @@ func (handler *ProductViewsHandler) productsIndexView(w http.ResponseWriter, r *
 }
 
 func (handler *ProductViewsHandler) editProductView(w http.ResponseWriter, r *http.Request) {
+	// TODO: CSRF
 	// get product
 	product := handler.getProductOr404(&w, r)
 	if product == nil {
 		return
 	}
 
-	if r.Method == "POST" {
+	form := getProductForm(r, product)
+	// validate form
+	isValid, err := form.isValid()
+	if err != nil {
+		// handle form parsing error (400 error)
+		http.Error(w, "400 - Bad request", http.StatusBadRequest)
+		return
+	}
+	if isValid {
+		// save model
+		product, _ = form.save(handler.db) // TODO do something about the error
+		// redirect to details page
 		path := "/products/details/" + strconv.Itoa(int(product.ID))
 		http.Redirect(w, r, path, http.StatusFound)
 		return
 	}
 
-	ctx := map[string]interface{}{
-		"product": product,
-	}
+	// pass form to template
+	ctx := map[string]interface{}{"form": form}
 	handler.renderTemplate("edit_product_form", ctx, &w, r)
 }
 
 func (handler *ProductViewsHandler) newProductView(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		productId := "1"
-		path := "/products/details/" + productId
+	form := getProductForm(r, nil)
+	// validate form
+	isValid, err := form.isValid()
+	println(isValid)
+	println(form.product.Name, form.product.Mesure)
+	if err != nil {
+		// handle form parsing error (400 error)
+		http.Error(w, "400 - Bad request", http.StatusBadRequest)
+		return
+	}
+	if isValid {
+		// save model
+		product, _ := form.save(handler.db) // TODO do something about the error
+		// redirect to details page
+		path := "/products/details/" + strconv.Itoa(int(product.ID))
 		http.Redirect(w, r, path, http.StatusFound)
+		return
 	}
 
-	ctx := map[string]interface{}{}
+	ctx := map[string]interface{}{"form": form}
 	handler.renderTemplate("new_product_form", ctx, &w, r)
 }
 
