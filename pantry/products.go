@@ -123,6 +123,57 @@ func (handler *ProductViewsHandler) renderTemplate(templateName string, ctx map[
 	})
 }
 
+// FORM ===============================
+
+type ProductForm struct {
+	r       *http.Request
+	product *Product
+	valid   bool
+	errors  map[string]string
+}
+
+func getProductForm(r *http.Request, product *Product) *ProductForm {
+	if product == nil {
+		product = &Product{}
+	}
+	return &ProductForm{r, product, false, make(map[string]string)}
+}
+
+func (form *ProductForm) isValid() (bool, error) {
+	form.valid = false
+	if form.r.Method == "POST" {
+		// initial form parsing
+		if err := form.r.ParseForm(); err != nil {
+			return false, err
+		}
+	} else {
+		// non POST requests are invalid by default
+		return false, nil
+	}
+
+	// check the values themselves
+	form.valid = true
+	if err := form.product.setName(form.r.Form["name"][0]); err != nil {
+		form.errors["name"] = err.Error()
+		form.valid = false
+	}
+	if err := form.product.setMesure(form.r.Form["mesure"][0]); err != nil {
+		form.errors["mesure"] = err.Error()
+		form.valid = false
+	}
+
+	return form.valid, nil
+}
+
+func (form *ProductForm) save(db *gorm.DB) (*Product, error) {
+	// check if form was validated
+	if !form.valid {
+		return nil, errors.New("form must be valid to save - run isValid()")
+	}
+	db.Save(form.product)
+	return form.product, nil
+}
+
 // VIEWS ==============================
 
 func (handler *ProductViewsHandler) productsIndexView(w http.ResponseWriter, r *http.Request) {
