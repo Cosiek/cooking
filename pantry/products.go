@@ -129,14 +129,17 @@ type ProductForm struct {
 	r       *http.Request
 	product *Product
 	valid   bool
-	errors  map[string]string
+	Errors  map[string]string
 }
 
 func getProductForm(r *http.Request, product *Product) *ProductForm {
 	if product == nil {
 		product = &Product{}
 	}
-	return &ProductForm{r, product, false, make(map[string]string)}
+	Errors := make(map[string]string)
+	Errors["name"] = ""
+	Errors["mesure"] = ""
+	return &ProductForm{r, product, false, Errors}
 }
 
 func (form *ProductForm) isValid() (bool, error) {
@@ -154,11 +157,11 @@ func (form *ProductForm) isValid() (bool, error) {
 	// check the values themselves
 	form.valid = true
 	if err := form.product.setName(form.r.Form["name"][0]); err != nil {
-		form.errors["name"] = err.Error()
+		form.Errors["name"] = err.Error()
 		form.valid = false
 	}
 	if err := form.product.setMesure(form.r.Form["mesure"][0]); err != nil {
-		form.errors["mesure"] = err.Error()
+		form.Errors["mesure"] = err.Error()
 		form.valid = false
 	}
 
@@ -220,8 +223,6 @@ func (handler *ProductViewsHandler) newProductView(w http.ResponseWriter, r *htt
 	form := getProductForm(r, nil)
 	// validate form
 	isValid, err := form.isValid()
-	println(isValid)
-	println(form.product.Name, form.product.Mesure)
 	if err != nil {
 		// handle form parsing error (400 error)
 		http.Error(w, "400 - Bad request", http.StatusBadRequest)
