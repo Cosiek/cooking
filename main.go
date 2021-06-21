@@ -9,5 +9,5 @@ func main() {
 	db := pantry.InitDatabase()
 
 	go pantry.StartServer(db)
-	pantry_api.StartServer()
+	pantry_api.StartServer(db)
 }

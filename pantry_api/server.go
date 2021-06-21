@@ -4,13 +4,34 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+
+	"cooking/m/v2/pantry"
 )
 
-func StartServer() {
+func DBMiddleware(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("db", db)
+
+		c.Next()
+	}
+}
+
+func StartServer(db *gorm.DB) {
 	r := gin.Default()
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+	r.Use(DBMiddleware(db))
+
+	r.GET("/produce", func(c *gin.Context) {
+		db := c.MustGet("db").(*gorm.DB)
+		var products []pantry.Product
+		db.Find(&products)
+		names := ""
+		for _, pr := range products {
+			names += pr.Name
+		}
+		c.JSON(http.StatusOK, gin.H{"produces": names})
+	})
 	})
 	r.Run(":8081")
 }
