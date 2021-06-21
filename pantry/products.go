@@ -130,16 +130,20 @@ type ProductForm struct {
 	product *Product
 	valid   bool
 	Errors  map[string]string
+	Values  map[string]string // default and submitted values
 }
 
 func getProductForm(r *http.Request, product *Product) *ProductForm {
 	if product == nil {
 		product = &Product{}
 	}
-	Errors := make(map[string]string)
-	Errors["name"] = ""
-	Errors["mesure"] = ""
-	return &ProductForm{r, product, false, Errors}
+
+	errors := map[string]string{"name": "", "mesure": ""}
+	values := map[string]string{
+		"name":   product.Name,
+		"mesure": strconv.Itoa(int(product.Mesure)),
+	}
+	return &ProductForm{r, product, false, errors, values}
 }
 
 func (form *ProductForm) isValid() (bool, error) {
@@ -154,8 +158,13 @@ func (form *ProductForm) isValid() (bool, error) {
 		return false, nil
 	}
 
+	// attach passed strings to display to the user, if validation fails
+	form.Values["name"] = form.r.Form["name"][0]
+	form.Values["mesure"] = form.r.Form["mesure"][0]
+
 	// check the values themselves
 	form.valid = true
+
 	if err := form.product.setName(form.r.Form["name"][0]); err != nil {
 		form.Errors["name"] = err.Error()
 		form.valid = false
@@ -175,6 +184,14 @@ func (form *ProductForm) save(db *gorm.DB) (*Product, error) {
 	}
 	db.Save(form.product)
 	return form.product, nil
+}
+
+func (form *ProductForm) GetName() string {
+	return form.Values["name"]
+}
+
+func (form *ProductForm) GetMesure() string {
+	return form.Values["mesure"]
 }
 
 // VIEWS ==============================
