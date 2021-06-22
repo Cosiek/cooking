@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"cooking/m/v2/pantry"
+	"cooking/m/v2/database"
 )
 
 func DBMiddleware(db *gorm.DB) gin.HandlerFunc {
@@ -24,7 +24,7 @@ func StartServer(db *gorm.DB) {
 
 	r.GET("/produce", func(c *gin.Context) {
 		db := c.MustGet("db").(*gorm.DB)
-		var products []pantry.Product
+		var products []database.Produce
 		db.Find(&products)
 		names := ""
 		for _, pr := range products {
