@@ -9,6 +9,21 @@ import (
 )
 
 /*
+Fetches a produce from database by ID. Sets 404 response if no matching produce was found.
+*/
+func getProduceOr404(produceId string, ctx *gin.Context) *database.Produce {
+	db := ctx.MustGet("db").(*gorm.DB)
+	var produce database.Produce
+	db.Find(&produce, produceId)
+
+	if produce.ID == 0 {
+		ctx.JSON(http.StatusNotFound, gin.H{"message": "Produce not found."})
+		return nil
+	}
+	return &produce
+}
+
+/*
 Returns a list of all produces in the database.
 
 TODO: limit to only the producess owned by current user.
@@ -33,9 +48,10 @@ TODO: limit to only the producess owned by current user.
 func readOne(c *gin.Context) {
 	id := c.Param("id")
 
-	db := c.MustGet("db").(*gorm.DB)
-	var produce database.Produce
-	db.Find(&produce, id)
+	produce := getProduceOr404(id, c)
+	if produce == nil {
+		return
+	}
 
 	producesList := make([]map[string]interface{}, 1)
 	producesList[0] = produce.ToMap()
