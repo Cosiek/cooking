@@ -60,3 +60,11 @@ func (p *Produce) setMesure(mesureIdStr string) error {
 	p.Mesure = mesure
 	return nil
 }
+
+func (p *Produce) ToMap() map[string]interface{} {
+	m := make(map[string]interface{})
+	m["id"] = p.ID
+	m["name"] = p.Name
+	m["mesure_id"] = p.Mesure
+	return m
+}
