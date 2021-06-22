@@ -1,12 +1,8 @@
 package pantry_api
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-
-	"cooking/m/v2/database"
 )
 
 func DBMiddleware(db *gorm.DB) gin.HandlerFunc {
@@ -22,16 +18,7 @@ func StartServer(db *gorm.DB) {
 
 	r.Use(DBMiddleware(db))
 
-	r.GET("/produce", func(c *gin.Context) {
-		db := c.MustGet("db").(*gorm.DB)
-		var products []database.Produce
-		db.Find(&products)
-		names := ""
-		for _, pr := range products {
-			names += pr.Name
-		}
-		c.JSON(http.StatusOK, gin.H{"produces": names})
-	})
-	})
+	r.GET("/produce", readAll)
+	r.GET("/produce/:id", readOne)
 	r.Run(":8081")
 }
