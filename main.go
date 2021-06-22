@@ -6,8 +6,7 @@ import (
 )
 
 func main() {
-	db := pantry.InitDatabase()
 
-	go pantry.StartServer(db)
+	go pantry.StartServer()
 	pantry_api.StartServer(db)
 }

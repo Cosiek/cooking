@@ -5,8 +5,6 @@ import (
 	"log"
 	"net/http"
 	"regexp"
-
-	"gorm.io/gorm"
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -28,12 +26,11 @@ func getIndexView() View {
 	}
 }
 
-func StartServer(db *gorm.DB) {
+func StartServer() {
 	// prepare router
 	router := Router{}
 
 	// add views
-	addProductViews(&router, db)
 	router.addView(getIndexView())
 
 	http.HandleFunc("/", router.serve)
