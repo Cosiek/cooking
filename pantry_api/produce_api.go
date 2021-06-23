@@ -58,3 +58,17 @@ func readOne(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"produces": producesList})
 }
+
+func delete(c *gin.Context) {
+	id := c.Param("id")
+
+	produce := getProduceOr404(id, c)
+	if produce == nil {
+		return
+	}
+
+	db := c.MustGet("db").(*gorm.DB)
+	db.Delete(&produce)
+
+	c.JSON(http.StatusOK, gin.H{"message": `Produce {id} deleted.`})
+}

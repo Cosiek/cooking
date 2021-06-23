@@ -20,5 +20,6 @@ func StartServer(db *gorm.DB) {
 
 	r.GET("/produce", readAll)
 	r.GET("/produce/:id", readOne)
+	r.DELETE("/produce/:id", delete)
 	r.Run(":8081")
 }
