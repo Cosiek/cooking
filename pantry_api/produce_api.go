@@ -93,6 +93,48 @@ func readOne(c *gin.Context) {
 }
 
 /*
+Updates a produce in db.
+
+If data passed to create the product is invalid, then the response will contain a dictionary of error messages.
+*/
+func updateProduce(c *gin.Context) {
+	// get data from request
+	jsonData, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request - " + err.Error()})
+	}
+
+	// get produce from db
+	db := c.MustGet("db").(*gorm.DB)
+	id := c.Param("id")
+	produce := getProduceOr404(id, c)
+	if produce == nil {
+		return
+	}
+
+	// parse json
+	var result map[string]interface{}
+	err = json.Unmarshal([]byte(jsonData), &result)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request - " + err.Error()})
+	}
+
+	// attach produce id
+	result["id"] = produce.ID
+
+	// validate input
+	produce, errors := database.GetProduceFromMap(result)
+	if len(errors) == 0 {
+		// save to db
+		db.Save(produce)
+
+		c.JSON(http.StatusOK, gin.H{"message": "Ok", "produce": produce.ToMap()})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"message": "Fial", "errors": errors})
+	}
+}
+
+/*
 Deletes the produce refered by id in the url
 */
 func delete(c *gin.Context) {
