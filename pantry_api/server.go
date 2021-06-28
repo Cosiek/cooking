@@ -19,7 +19,9 @@ func StartServer(db *gorm.DB) {
 	r.Use(DBMiddleware(db))
 
 	r.GET("/produce", readAll)
+	r.POST("/produce", createProduce)
 	r.GET("/produce/:id", readOne)
 	r.DELETE("/produce/:id", delete)
+
 	r.Run(":8081")
 }

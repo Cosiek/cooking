@@ -2,6 +2,7 @@ package pantry_api
 
 import (
 	"cooking/m/v2/database"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,38 @@ func getProduceOr404(produceId string, ctx *gin.Context) *database.Produce {
 		return nil
 	}
 	return &produce
+}
+
+/*
+Creates a new produce entry in db.
+
+If data passed to create the product is invalid, then the response will contain a dictionary of error messages.
+*/
+func createProduce(c *gin.Context) {
+	// get data from request
+	jsonData, err := c.GetRawData()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request - " + err.Error()})
+	}
+
+	// parse json
+	var result map[string]interface{}
+	err = json.Unmarshal([]byte(jsonData), &result)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request - " + err.Error()})
+	}
+
+	// validate input
+	produce, errors := database.GetProduceFromMap(result)
+	if len(errors) == 0 {
+		// save to db
+		db := c.MustGet("db").(*gorm.DB)
+		db.Save(produce)
+
+		c.JSON(http.StatusOK, gin.H{"message": "Ok", "produce": produce.ToMap()})
+	} else {
+		c.JSON(http.StatusOK, gin.H{"message": "Fial", "errors": errors})
+	}
 }
 
 /*
@@ -59,6 +92,9 @@ func readOne(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"produces": producesList})
 }
 
+/*
+Deletes the produce refered by id in the url
+*/
 func delete(c *gin.Context) {
 	id := c.Param("id")
 
