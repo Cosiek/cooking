@@ -19,10 +19,10 @@ func StartServer(db *gorm.DB) {
 	r.Use(DBMiddleware(db))
 
 	r.POST("/produce", createProduce)
-	r.GET("/produce", readAll)
-	r.GET("/produce/:id", readOne)
+	r.GET("/produce", readAllProduces)
+	r.GET("/produce/:id", readOneProduce)
 	r.PUT("/produce/:id", updateProduce)
-	r.DELETE("/produce/:id", delete)
+	r.DELETE("/produce/:id", deleteProduce)
 
 	r.Run(":8081")
 }

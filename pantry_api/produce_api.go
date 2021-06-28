@@ -61,7 +61,7 @@ Returns a list of all produces in the database.
 
 TODO: limit to only the producess owned by current user.
 */
-func readAll(c *gin.Context) {
+func readAllProduces(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
 	var produces []database.Produce
 	db.Find(&produces)
@@ -78,7 +78,7 @@ Returns a list with a single element - the produce refered by id in the url.
 
 TODO: limit to only the producess owned by current user.
 */
-func readOne(c *gin.Context) {
+func readOneProduce(c *gin.Context) {
 	id := c.Param("id")
 
 	produce := getProduceOr404(id, c)
@@ -137,7 +137,7 @@ func updateProduce(c *gin.Context) {
 /*
 Deletes the produce refered by id in the url
 */
-func delete(c *gin.Context) {
+func deleteProduce(c *gin.Context) {
 	id := c.Param("id")
 
 	produce := getProduceOr404(id, c)
