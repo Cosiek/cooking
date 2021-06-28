@@ -68,3 +68,35 @@ func (p *Produce) ToMap() map[string]interface{} {
 	m["mesure_id"] = p.Mesure
 	return m
 }
+
+func GetProduceFromMap(input map[string]interface{}) (*Produce, map[string]string) {
+	var produce Produce
+	errors := map[string]string{}
+	if produceId, ok := input["id"]; ok {
+		produce.ID = produceId.(uint)
+	}
+
+	if _, ok := input["name"]; ok {
+		err := produce.setName(input["name"].(string))
+		if err != nil {
+			errors["name"] = err.Error()
+		}
+	} else {
+		errors["name"] = "Parameter 'name' is required"
+	}
+
+	if _, ok := input["mesure"]; ok {
+		err := produce.setMesure(input["mesure"].(string))
+		if err != nil {
+			errors["mesure"] = err.Error()
+		}
+	} else {
+		errors["mesure"] = "Parameter 'mesure' is required"
+	}
+
+	if len(errors) > 0 {
+		return nil, errors
+	} else {
+		return &produce, errors
+	}
+}
